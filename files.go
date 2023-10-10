@@ -54,15 +54,17 @@ func HashPathListIntoString(path_list []string) (string, string) {
 		}
 		pathHash += fmt.Sprintf("%x", hash) + "/"
 	}
+	fmt.Println(pathHash)
 	var fileHash []byte
 	for _, block := range sha256.Sum256([]byte(path_list[len(path_list)-1])) {
 		fileHash = append(fileHash, block)
 	}
+	fmt.Printf("%x\n", fileHash)
 	pathHash = strings.TrimSuffix(pathHash, fmt.Sprintf("%x/", fileHash))
 	return pathHash, fmt.Sprintf("%x", fileHash)
 }
 
-// returns a list of directories and the file from a path, excluding the first entry, because that's the base passwords store directory
+// returns a list of directories and the file from a path
 func MakePathList(password_file_path string) []string {
 	var path_list []string
 	var parent, absPath string
@@ -77,5 +79,5 @@ func MakePathList(password_file_path string) []string {
 		j := len(path_list) - i - 1
 		path_list[i], path_list[j] = path_list[j], path_list[i]
 	}
-	return path_list[1:]
+	return path_list
 }
