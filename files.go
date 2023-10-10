@@ -54,12 +54,10 @@ func HashPathListIntoString(path_list []string) (string, string) {
 		}
 		pathHash += fmt.Sprintf("%x", hash) + "/"
 	}
-	fmt.Println(pathHash)
 	var fileHash []byte
 	for _, block := range sha256.Sum256([]byte(path_list[len(path_list)-1])) {
 		fileHash = append(fileHash, block)
 	}
-	fmt.Printf("%x\n", fileHash)
 	pathHash = strings.TrimSuffix(pathHash, fmt.Sprintf("%x/", fileHash))
 	return pathHash, fmt.Sprintf("%x", fileHash)
 }
@@ -70,9 +68,9 @@ func MakePathList(password_file_path string) []string {
 	var parent, absPath string
 
 	for absPath != baseDir && absPath+"/" != baseDir {
+		parent = filepath.Base(password_file_path)
 		password_file_path = filepath.Dir(password_file_path)
 		absPath, _ = filepath.Abs(password_file_path)
-		parent = filepath.Base(password_file_path)
 		path_list = append(path_list, parent)
 	}
 	for i := 0; i < len(path_list)/2; i++ {
