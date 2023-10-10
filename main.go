@@ -11,12 +11,12 @@ import (
 	"strings"
 
 	"github.com/goccy/go-json"
-	// "golang.org/x/crypto/bcrypt"
+	"golang.org/x/crypto/bcrypt"
 )
 
 const PASSWORD = "7y7*YA&*Y78y34y*&AYSy8ufuyhbdf^&teuyrgG&^"
 
-const baseDir = "/workspaces/no-pass-go/passwords"
+var baseDir = "passwords"
 
 type Account struct {
 	Password      string       `json:"Password"`
@@ -29,10 +29,10 @@ type Account struct {
 
 func main() {
 	// hash the password
-	// hash, err := bcrypt.GenerateFromPassword([]byte(PASSWORD), bcrypt.DefaultCost)
-	// if err != nil {
-	// 	panic(err.Error())
-	// }
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte(PASSWORD), bcrypt.DefaultCost)
+	if err != nil {
+		panic(err.Error())
+	}
 
 	account := Account{
 		Password:      "34324324",
@@ -42,14 +42,23 @@ func main() {
 		RecoveryCodes: []string{"asasd", "asdads"},
 	}
 
-	save_to_file(account, "passwords/email/google.com/Derpking37")
-
-	file, err := os.ReadFile("/workspaces/no-pass-go/passwords/82244417f956ac7c599f191593f7e441a4fafa20a4158fd52e154f1dc4c8ed92/d4c9d9027326271a89ce51fcaf328ed673f17be33469ff979e8ab8dd501e664f")
+	baseDir, err = filepath.Abs(baseDir)
 	if err != nil {
 		panic(err.Error())
 	}
+	save_to_file([]byte(passwordHash), account, "passwords/email/google.com/Derpking37")
+	absFile, err := filepath.Abs("./passwords/82244417f956ac7c599f191593f7e441a4fafa20a4158fd52e154f1dc4c8ed92/d4c9d9027326271a89ce51fcaf328ed673f17be33469ff979e8ab8dd501e664f")
+	if err != nil {
+		panic(err.Error())
+	}
+
+	file, err := os.ReadFile(absFile)
+	if err != nil {
+		panic(err.Error())
+	}
+
 	var data Account
-	decryptedFile, err := Decrypt([]byte(PASSWORD), file)
+	decryptedFile, err := Decrypt([]byte(passwordHash), file)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -109,7 +118,7 @@ func Encrypt(key, data []byte) ([]byte, error) {
 	return ciphertext, nil
 }
 
-func save_to_file(account Account, password_path string) error {
+func save_to_file(key []byte, account Account, password_path string) error {
 	path_list := MakePathList(password_path)
 	dirHash, fileHash := HashPathListIntoPath(path_list)
 
@@ -132,7 +141,7 @@ func save_to_file(account Account, password_path string) error {
 		panic(err.Error())
 	}
 
-	encryptedJson, err := Encrypt([]byte(PASSWORD), jsonData)
+	encryptedJson, err := Encrypt(key, jsonData)
 	if err != nil {
 		panic(err.Error())
 	}
