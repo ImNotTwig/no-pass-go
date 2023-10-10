@@ -14,15 +14,9 @@ import (
 	// "golang.org/x/crypto/bcrypt"
 )
 
-const PASSWORD = "7y7*YA&*Y78y34y*&AYSy8ufuyhbdf^&teuyrgG&^DTFYUGWEHR87atyeruGRyuiwegr"
+const PASSWORD = "7y7*YA&*Y78y34y*&AYSy8ufuyhbdf^&teuyrgG&^"
 
 const baseDir = "/workspaces/no-pass-go/passwords"
-
-const passwordData = `password: epicPassword
-username: epicUsername
-email: epicEmail
-recovery_codes: [epicRecoveryCode0, epicRecoveryCode1]
-domain: epicWebsite.com`
 
 type Account struct {
 	Password      string       `json:"Password"`
@@ -50,6 +44,20 @@ func main() {
 
 	save_to_file(account, "passwords/email/google.com/Derpking37")
 
+	file, err := os.ReadFile("/workspaces/no-pass-go/passwords/82244417f956ac7c599f191593f7e441a4fafa20a4158fd52e154f1dc4c8ed92/d4c9d9027326271a89ce51fcaf328ed673f17be33469ff979e8ab8dd501e664f")
+	if err != nil {
+		panic(err.Error())
+	}
+	var data Account
+	decryptedFile, err := Decrypt([]byte(PASSWORD), file)
+	if err != nil {
+		panic(err.Error())
+	}
+	err = json.Unmarshal(decryptedFile, &data)
+	if err != nil {
+		panic(err.Error())
+	}
+	fmt.Println(data.Username)
 }
 
 func Decrypt(key, data []byte) ([]byte, error) {
@@ -112,7 +120,6 @@ func save_to_file(account Account, password_path string) error {
 			panic(err.Error())
 		}
 		_, err = os.Create(absPath)
-		fmt.Println(dirHash + fileHash)
 		if err != nil {
 			panic(err.Error())
 		}
@@ -120,7 +127,7 @@ func save_to_file(account Account, password_path string) error {
 
 	file, _ := os.Create("passwords/" + dirHash + fileHash)
 
-	jsonData, err := json.Marshal(passwordData)
+	jsonData, err := json.Marshal(account)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -148,7 +155,7 @@ func HashPathListIntoPath(path_list []string) (string, string) {
 	for _, block := range sha256.Sum256([]byte(path_list[len(path_list)-1])) {
 		fileHash = append(fileHash, block)
 	}
-	pathHash = strings.TrimSuffix(pathHash, fmt.Sprintf("%x", fileHash))
+	pathHash = strings.TrimSuffix(pathHash, fmt.Sprintf("%x/", fileHash))
 	return pathHash, fmt.Sprintf("%x", fileHash)
 }
 
