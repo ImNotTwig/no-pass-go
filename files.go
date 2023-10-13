@@ -3,7 +3,6 @@ package main
 import (
 	"crypto/sha256"
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -12,34 +11,35 @@ import (
 	"github.com/goccy/go-json"
 )
 
-// converts an account struct to json, encrypts it, and stores it to the given path
-func SavePasswordToFile(account Account, password_path string) {
-	absolute_path, _ := filepath.Abs("passwords/" + password_path)
+func OpenAccountFromFile(key []byte, account_path string) {
+}
 
+// converts an account struct to json, encrypts it, and stores it to the given path
+func SaveAccountToFile(account Account, account_path string) {
 	var hash []byte
-	for _, block := range sha256.Sum256([]byte(password_path)) {
+	for _, block := range sha256.Sum256([]byte(account_path)) {
 		hash = append(hash, block)
 	}
+	absolute_path, _ := filepath.Abs("passwords/" + fmt.Sprintf("%x", hash))
 
 	// checking if the password file exists, and if it doesnt, we create it
 	if _, err := os.Stat(absolute_path); os.IsNotExist(err) {
 		os.Create(absolute_path)
-
-		// creating the password file
-		_, err = os.Create(absolute_path)
-	} else {
-		log.Fatalln(err)
+	} else if err != nil {
+		panic(err.Error())
 	}
 
 	json_data, err := json.Marshal(account)
 	if err != nil {
-		log.Fatalln(err)
+		panic(err.Error())
 	}
-
 	// open and write the encrypted json data to the password file
-	password_file, _ := os.Create(absolute_path)
-	password_file.Write(json_data)
-	exec.Command("gpg", "--always-trust", "--batch", "--yes", "--encrypt", "--recipient", config.GPGPublicKey, absolute_path)
+	out, err := exec.Command("./bash/encr_string.sh", config.GPGPublicKey, string(json_data), absolute_path).Output()
+	if err != nil {
+		panic(err.Error())
+	}
+	os.WriteFile(absolute_path, out, os.ModePerm)
+	AddToTreeFile(account_path)
 }
 
 // add an entry to the tree database file
@@ -50,7 +50,7 @@ func AddToTreeFile(path string) error {
 	if _, err := os.Stat(absolute_path); os.IsNotExist(err) {
 		os.Create(absolute_path)
 	}
-	treedb, err := ParseTreeFile(absolute_path)
+	treedb, err := ParseTreeFile()
 	if err != nil {
 		return err
 	}
@@ -76,7 +76,8 @@ func AddToTreeFile(path string) error {
 }
 
 // parse the tree database into a dictionary
-func ParseTreeFile(TreeDataBasePath string) (TreeDataBase, error) {
+func ParseTreeFile() (TreeDataBase, error) {
+	TreeDataBasePath, _ := filepath.Abs(config.BaseDirectory + "/" + "pass_tree.asc")
 	treedb := make(map[string]string)
 
 	tree_file, _ := os.ReadFile(TreeDataBasePath)
