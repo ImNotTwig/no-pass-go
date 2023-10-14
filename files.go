@@ -11,6 +11,7 @@ import (
 	"github.com/goccy/go-json"
 )
 
+// Read an account from file
 func OpenAccountFromFile(account_path string) (Account, error) {
 	account_path = ConvertToHashedPath(account_path)
 	var account Account
@@ -31,6 +32,7 @@ func OpenAccountFromFile(account_path string) (Account, error) {
 	return account, nil
 }
 
+// Remove an account from the store
 func RemoveAccount(account_path string) error {
 	RemoveFromTreeFile(account_path)
 	account_path = ConvertToHashedPath(account_path)
@@ -44,6 +46,7 @@ func RemoveAccount(account_path string) error {
 	return nil
 }
 
+// convert a filepath to a hash
 func ConvertToHashedPath(account_path string) string {
 	var hash []byte
 	for _, block := range sha256.Sum256([]byte(account_path)) {
@@ -110,6 +113,7 @@ func AddToTreeFile(path string) error {
 	return nil
 }
 
+// remove a path from the pass_tree file
 func RemoveFromTreeFile(path string) error {
 	absolute_path, _ := filepath.Abs(config.BaseDirectory + "/" + "pass_tree.asc")
 
