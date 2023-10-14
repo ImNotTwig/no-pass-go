@@ -127,18 +127,4 @@ func main() {
 	if err := app.Run(os.Args); err != nil {
 		log.Fatal(err)
 	}
-
-	// account := Account{
-	// 	Password:      "34324324",
-	// 	Username:      "asdasdad",
-	// 	Email:         "something@something.com",
-	// 	Service:       "something.com",
-	// 	RecoveryCodes: []string{"asasd", "asdads"},
-	// }
-
-	// SaveAccountToFile(account, "email/tutanota.com/TwigTheCat")
-	// account, err = OpenAccountFromFile("email/tutanota.com/TwigTheCat")
-	// if err != nil {
-	// 	panic(err.Error())
-	// }
 }
