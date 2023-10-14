@@ -81,10 +81,39 @@ func main() {
 				UsageText: "npg rm, remove account_path",
 				Action: func(ctx *cli.Context) error {
 					account_path := ctx.Args().First()
-					fmt.Println(account_path)
 					if err := RemoveAccount(account_path); err != nil {
 						return err
 					}
+					return nil
+				},
+			},
+			{
+				Name: "show",
+				Flags: []cli.Flag{
+					&cli.BoolFlag{
+						Name:    "all",
+						Aliases: []string{"a"},
+						Usage:   "Shows all account data, instead of just the password",
+						Value:   false,
+					},
+				},
+				Usage:     "Show an account's data from the store",
+				UsageText: "npg show account_path",
+				Action: func(ctx *cli.Context) error {
+					account_path := ctx.Args().First()
+					account, err := OpenAccountFromFile(account_path)
+					if err != nil {
+						return err
+					}
+					fmt.Println(account.Password)
+					if ctx.Value("all").(bool) == false {
+						return nil
+					}
+
+					fmt.Println("username: ", account.Username)
+					fmt.Println("email: ", account.Email)
+					fmt.Println("service: ", account.Service)
+
 					return nil
 				},
 			},
