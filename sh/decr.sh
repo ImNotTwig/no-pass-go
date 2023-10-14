@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
 DEC_PASS=$(gpg -dq "$1")
 

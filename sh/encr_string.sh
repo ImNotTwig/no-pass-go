@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
 ENC_TEXT=$(echo "$2" | gpg --encrypt --armor --always-trust --batch --yes --recipient "$1" --output -)
 

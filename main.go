@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 
@@ -31,29 +32,38 @@ func main() {
 				Flags: []cli.Flag{
 					&cli.StringFlag{
 						Name:     "password",
+						Aliases:  []string{"p"},
 						Value:    "",
 						Required: true,
 						Usage:    "The password you want to assign to this account",
 					},
 					&cli.StringFlag{
-						Name:  "username",
-						Value: "",
-						Usage: "The username you want to assign to this account",
+						Name:    "username",
+						Aliases: []string{"u"},
+						Value:   "",
+						Usage:   "The username you want to assign to this account",
 					},
 					&cli.StringFlag{
-						Name:  "email",
-						Value: "",
-						Usage: "The email you want to assign to this account",
+						Name:    "email",
+						Aliases: []string{"e"},
+						Value:   "",
+						Usage:   "The email you want to assign to this account",
 					},
 					&cli.StringFlag{
-						Name:  "service",
-						Value: "",
-						Usage: "The service/website you want to assign to this account",
+						Name:    "service",
+						Aliases: []string{"s"},
+						Value:   "",
+						Usage:   "The service/website you want to assign to this account",
 					},
 				},
 				Action: func(ctx *cli.Context) error {
 					var account Account
+
 					account_path := ctx.Args().First()
+					if account_path == "" {
+						return fmt.Errorf("No filepath given to store account")
+					}
+
 					account.Password = ctx.Value("password").(string)
 					account.Username = ctx.Value("username").(string)
 					account.Email = ctx.Value("email").(string)
@@ -61,6 +71,20 @@ func main() {
 
 					SaveAccountToFile(account, account_path)
 
+					return nil
+				},
+			},
+			{
+				Name:      "remove",
+				Aliases:   []string{"rm"},
+				Usage:     "Remove an account from the store",
+				UsageText: "npg rm, remove account_path",
+				Action: func(ctx *cli.Context) error {
+					account_path := ctx.Args().First()
+					fmt.Println(account_path)
+					if err := RemoveAccount(account_path); err != nil {
+						return err
+					}
 					return nil
 				},
 			},

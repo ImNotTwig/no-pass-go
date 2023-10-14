@@ -1,4 +1,4 @@
-module pass
+module npg
 
 go 1.20
 
