@@ -11,20 +11,42 @@ import (
 	"github.com/goccy/go-json"
 )
 
-func OpenAccountFromFile(key []byte, account_path string) {
+func OpenAccountFromFile(account_path string) (Account, error) {
+	account_path = ConvertToHashedPath(account_path)
+	var account Account
+
+	if _, err := os.Stat(account_path); err != nil {
+		return account, err
+	}
+
+	decr_acc_file, err := exec.Command("./bash/decr.sh", account_path).Output()
+	if err != nil {
+		return account, err
+	}
+
+	if err = json.Unmarshal(decr_acc_file, &account); err != nil {
+		return account, err
+	}
+
+	return account, nil
 }
 
-// converts an account struct to json, encrypts it, and stores it to the given path
-func SaveAccountToFile(account Account, account_path string) {
+func ConvertToHashedPath(account_path string) string {
 	var hash []byte
 	for _, block := range sha256.Sum256([]byte(account_path)) {
 		hash = append(hash, block)
 	}
-	absolute_path, _ := filepath.Abs("passwords/" + fmt.Sprintf("%x", hash))
+	absolute_path, _ := filepath.Abs(config.BaseDirectory)
+	return absolute_path + "/" + fmt.Sprintf("%x", hash)
+}
+
+// converts an account struct to json, encrypts it, and stores it to the given path
+func SaveAccountToFile(account Account, account_path string) {
+	account_path = ConvertToHashedPath(account_path)
 
 	// checking if the password file exists, and if it doesnt, we create it
-	if _, err := os.Stat(absolute_path); os.IsNotExist(err) {
-		os.Create(absolute_path)
+	if _, err := os.Stat(account_path); os.IsNotExist(err) {
+		os.Create(account_path)
 	} else if err != nil {
 		panic(err.Error())
 	}
@@ -34,11 +56,11 @@ func SaveAccountToFile(account Account, account_path string) {
 		panic(err.Error())
 	}
 	// open and write the encrypted json data to the password file
-	out, err := exec.Command("./bash/encr_string.sh", config.GPGPublicKey, string(json_data), absolute_path).Output()
+	out, err := exec.Command("./bash/encr_string.sh", config.GPGPublicKey, string(json_data), account_path).Output()
 	if err != nil {
 		panic(err.Error())
 	}
-	os.WriteFile(absolute_path, out, os.ModePerm)
+	os.WriteFile(account_path, out, os.ModePerm)
 	AddToTreeFile(account_path)
 }
 
