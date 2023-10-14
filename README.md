@@ -38,6 +38,6 @@ to build and run the program after installing go and setting up your config file
 ```sh
 git clone https://github.com/ImNotTwig/no-pass-go
 cd no-pass-go
-go build 
+go build
 ./npg
 ```
