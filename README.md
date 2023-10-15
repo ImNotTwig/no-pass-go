@@ -19,16 +19,7 @@ There are 3 major features of this program
 2. The accounts are stored individually in their own files, which are hashes of the filepath given, the filepaths are stored in an index file called `pass_tree.asc`, each filepath has its own line, and is formatted as `path/to/account_file:hash_of_filepath`. The file is of course encrypted, as to not leak metadata
 3. You can easily integrate this program into outside programs or scripts, because of the way that data is printed with the `show` command, through normal plaintext messages, or json
 
-You need the go compiler to run this, to install it you can use the follow commands
-
-- fedora
-  - `dnf install go`
-- debian
-  - `apt install golang`
-- arch
-  - `pacman -S go`
-- everything else
-  - use your favorite search engine
+You need the go compiler to run this program. You can find out how to install Go on your system by using your favorite search engine and searching "how to install go on <operating_system>"
 
 Make sure you rename `example_config.toml` to `config.toml`, and put in your **public** GPG key, and the absolute path to where you want to store your account data.
 
