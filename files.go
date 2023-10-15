@@ -32,6 +32,49 @@ func OpenAccountFromFile(account_path string) (Account, error) {
 	return account, nil
 }
 
+func EditAccount(account_path string) error {
+	editor := os.Getenv("EDITOR")
+	if strings.TrimSpace(editor) == "" {
+		return fmt.Errorf("Default editor not found, please set the EDITOR environmental variable.")
+	}
+	hashed_account_path := ConvertToHashedPath(account_path)
+
+	temp_path, err := filepath.Abs(config.BaseDirectory + "/temp")
+	if err != nil {
+		return err
+	}
+
+	if _, err := os.Stat(temp_path); os.IsNotExist(err) {
+		os.Create(temp_path)
+	}
+
+	old_account, err := exec.Command("./sh/decr.sh", hashed_account_path).Output()
+	if err != nil {
+		return err
+	}
+	os.WriteFile(temp_path, old_account, os.ModePerm)
+
+	cmd := exec.Command(editor, temp_path)
+	cmd.Stdout = os.Stdout
+	cmd.Stdin = os.Stdin
+	cmd.Stderr = os.Stderr
+	cmd.Run()
+
+	decr_acc_file, err := os.ReadFile(temp_path)
+	if err != nil {
+		return err
+	}
+
+	var new_account Account
+	if err = json.Unmarshal(decr_acc_file, &new_account); err != nil {
+		return err
+	}
+
+	SaveAccountToFile(new_account, account_path)
+
+	return nil
+}
+
 // Remove an account from the store
 func RemoveAccount(account_path string) error {
 	RemoveFromTreeFile(account_path)

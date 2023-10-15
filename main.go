@@ -28,7 +28,7 @@ func main() {
 			{
 				Name:      "add",
 				Usage:     "Add an account to the store",
-				UsageText: "npg add [options] account_path",
+				UsageText: "npg add [options] ACCOUNT_PATH",
 				Flags: []cli.Flag{
 					&cli.StringFlag{
 						Name:     "password",
@@ -78,7 +78,7 @@ func main() {
 			{
 				Name:      "rm",
 				Usage:     "Remove an account from the store",
-				UsageText: "npg rm, remove account_path",
+				UsageText: "npg rm, remove ACCOUNT_PATH",
 				Action: func(ctx *cli.Context) error {
 					account_path := ctx.Args().First()
 					if err := RemoveAccount(account_path); err != nil {
@@ -99,7 +99,7 @@ func main() {
 					},
 				},
 				Usage:     "Show an account's data from the store",
-				UsageText: "npg show account_path",
+				UsageText: "npg show ACCOUNT_PATH",
 				Action: func(ctx *cli.Context) error {
 					account_path := ctx.Args().First()
 					account, err := OpenAccountFromFile(account_path)
@@ -154,6 +154,15 @@ func main() {
 					fmt.Println(tree_database_string)
 
 					return nil
+				},
+			},
+			{
+				Name:      "ed",
+				Usage:     "Edit an account",
+				UsageText: "npg ed ACCOUNT_PATH",
+				Action: func(ctx *cli.Context) error {
+					account_path := ctx.Args().First()
+					return EditAccount(account_path)
 				},
 			},
 		},
