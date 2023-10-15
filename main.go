@@ -76,8 +76,7 @@ func main() {
 				},
 			},
 			{
-				Name:      "remove",
-				Aliases:   []string{"rm"},
+				Name:      "rm",
 				Usage:     "Remove an account from the store",
 				UsageText: "npg rm, remove account_path",
 				Action: func(ctx *cli.Context) error {
@@ -120,8 +119,7 @@ func main() {
 				},
 			},
 			{
-				Name:      "move",
-				Aliases:   []string{"mv"},
+				Name:      "mv",
 				Usage:     "Move an account to another path",
 				UsageText: "npg move OLD_PATH NEW_PATH",
 				Action: func(ctx *cli.Context) error {
@@ -144,8 +142,7 @@ func main() {
 				},
 			},
 			{
-				Name:      "list",
-				Aliases:   []string{"ls"},
+				Name:      "ls",
 				Usage:     "List all the accounts in the store (without showing data associated).",
 				UsageText: "npg list",
 				Action: func(ctx *cli.Context) error {
