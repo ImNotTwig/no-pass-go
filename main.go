@@ -61,7 +61,7 @@ func main() {
 
 					account_path := ctx.Args().First()
 					if account_path == "" {
-						return fmt.Errorf("No filepath given to store account")
+						return fmt.Errorf("No filepath given to store account.")
 					}
 
 					account.Password = ctx.Value("password").(string)
@@ -70,6 +70,7 @@ func main() {
 					account.Service = ctx.Value("service").(string)
 
 					SaveAccountToFile(account, account_path)
+					fmt.Println("Saved ", account_path, " to the store.")
 
 					return nil
 				},
@@ -84,6 +85,7 @@ func main() {
 					if err := RemoveAccount(account_path); err != nil {
 						return err
 					}
+					fmt.Println("Removed ", account_path, " from the store.")
 					return nil
 				},
 			},
@@ -113,6 +115,46 @@ func main() {
 					fmt.Println("username: ", account.Username)
 					fmt.Println("email: ", account.Email)
 					fmt.Println("service: ", account.Service)
+
+					return nil
+				},
+			},
+			{
+				Name:      "move",
+				Aliases:   []string{"mv"},
+				Usage:     "Move an account to another path",
+				UsageText: "npg move OLD_PATH NEW_PATH",
+				Action: func(ctx *cli.Context) error {
+					if ctx.Args().Len() < 2 {
+						return fmt.Errorf("Not enough arguments. OLD_PATH and NEW_PATH are required.")
+					}
+					old_account_path := ctx.Args().First()
+					new_account_path := ctx.Args().Get(1)
+					account, err := OpenAccountFromFile(old_account_path)
+					if err != nil {
+						return err
+					}
+
+					RemoveAccount(old_account_path)
+					SaveAccountToFile(account, new_account_path)
+
+					fmt.Println("Moved ", old_account_path, " to ", new_account_path)
+
+					return nil
+				},
+			},
+			{
+				Name:      "list",
+				Aliases:   []string{"ls"},
+				Usage:     "List all the accounts in the store (without showing data associated).",
+				UsageText: "npg list",
+				Action: func(ctx *cli.Context) error {
+					tree_database_string, err := ListTreeFile()
+					if err != nil {
+						return err
+					}
+
+					fmt.Println(tree_database_string)
 
 					return nil
 				},

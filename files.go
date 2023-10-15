@@ -146,6 +146,20 @@ func RemoveFromTreeFile(path string) error {
 	return nil
 }
 
+func ListTreeFile() (string, error) {
+	tree_data_base, err := ParseTreeFile()
+	if err != nil {
+		return "", err
+	}
+
+	var treedb_string string
+	for hash, path := range tree_data_base {
+		treedb_string += path + ":" + hash + "\n"
+	}
+
+	return treedb_string, nil
+}
+
 // parse the tree database into a dictionary
 func ParseTreeFile() (TreeDataBase, error) {
 	TreeDataBasePath, _ := filepath.Abs(config.BaseDirectory + "/" + "pass_tree.asc")
