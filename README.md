@@ -22,6 +22,7 @@ There are 3 major features of this program
 You need the go compiler to run this program. You can find out how to install Go on your system by using your favorite search engine and searching "how to install go on <operating_system>"
 
 Make sure you rename `example_config.toml` to `config.toml`, and put in your **public** GPG key, and the absolute path to where you want to store your account data.
+After making renaming and putting in your gpg key and account store directory in `config.toml`, move it to `~/.config/npg/config.toml`
 
 Here is a [guide](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/6/html/security_guide/sect-security_guide-encryption-gpg-creating_gpg_keys_using_the_command_line) on how to make a GPG key
 
