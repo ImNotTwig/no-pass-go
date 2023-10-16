@@ -30,6 +30,7 @@ func OpenAccountFromFile(account_path string) (Account, error) {
 	return account, nil
 }
 
+// edit account on file
 func EditAccount(account_path string) error {
 	editor := os.Getenv("EDITOR")
 	if strings.TrimSpace(editor) == "" {
