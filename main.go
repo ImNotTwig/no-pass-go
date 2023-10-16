@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/BurntSushi/toml"
 	"github.com/urfave/cli/v2"
@@ -12,7 +13,11 @@ import (
 var config Config
 
 func main() {
-	conf_file, err := os.ReadFile("config.toml")
+	home, err := os.UserHomeDir()
+	if err != nil {
+		panic(err.Error())
+	}
+	conf_file, err := os.ReadFile(home + "/.config/npg/config.toml")
 	if err != nil {
 		panic(err.Error())
 	}
@@ -20,6 +25,17 @@ func main() {
 	_, err = toml.Decode(string(conf_file), &config)
 	if err != nil {
 		log.Fatalln("Invalid Config: ", err)
+	}
+	if strings.HasPrefix(config.BaseDirectory, "~/") {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			panic(err.Error())
+		}
+		config.BaseDirectory = home + strings.Split(config.BaseDirectory, "~")[1]
+	}
+	if _, err := os.Stat(config.BaseDirectory); os.IsNotExist(err) {
+		os.Mkdir(config.BaseDirectory, os.ModePerm)
+		os.Create(config.BaseDirectory + "/" + "pass_tree.asc")
 	}
 
 	app := &cli.App{

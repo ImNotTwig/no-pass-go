@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/bitfield/script"
 	"github.com/goccy/go-json"
 )
 
@@ -20,12 +21,9 @@ func OpenAccountFromFile(account_path string) (Account, error) {
 		return account, err
 	}
 
-	decr_acc_file, err := exec.Command("./sh/decr.sh", account_path).Output()
-	if err != nil {
-		return account, err
-	}
+	decr_acc_file, err := script.Exec(fmt.Sprintf("gpg -dq %s", account_path)).String()
 
-	if err = json.Unmarshal(decr_acc_file, &account); err != nil {
+	if err = json.Unmarshal([]byte(decr_acc_file), &account); err != nil {
 		return account, err
 	}
 
@@ -48,11 +46,11 @@ func EditAccount(account_path string) error {
 		os.Create(temp_path)
 	}
 
-	old_account, err := exec.Command("./sh/decr.sh", hashed_account_path).Output()
+	old_account, err := script.Exec(fmt.Sprintf("gpg -dq %s", hashed_account_path)).String()
 	if err != nil {
 		return err
 	}
-	os.WriteFile(temp_path, old_account, os.ModePerm)
+	os.WriteFile(temp_path, []byte(old_account), os.ModePerm)
 
 	cmd := exec.Command(editor, temp_path)
 	cmd.Stdout = os.Stdout
@@ -116,11 +114,11 @@ func SaveAccountToFile(account Account, account_path string) {
 		panic(err.Error())
 	}
 	// open and write the encrypted json data to the password file
-	out, err := exec.Command("./sh/encr_string.sh", config.GPGPublicKey, string(json_data), account_path).Output()
+	out, err := script.Echo(string(json_data)).Exec(fmt.Sprintf("gpg --encrypt --armor --always-trust --batch --yes --recipient %s --output -", config.GPGPublicKey)).String()
 	if err != nil {
 		panic(err.Error())
 	}
-	os.WriteFile(account_path, out, os.ModePerm)
+	os.WriteFile(account_path, []byte(out), os.ModePerm)
 }
 
 // add an entry to the tree database file
@@ -148,10 +146,12 @@ func AddToTreeFile(path string) error {
 		treedb_string += path + ":" + hash + "\n"
 	}
 
-	gpg_encr_command := exec.Command(`./sh/encr_string.sh`, config.GPGPublicKey, treedb_string, absolute_path)
-	gpg_encr_output, err := gpg_encr_command.Output()
+	gpg_encr_output, err := script.Echo(string(treedb_string)).Exec(fmt.Sprintf("gpg --encrypt --armor --always-trust --batch --yes --recipient %s --output -", config.GPGPublicKey)).String()
+	if err != nil {
+		panic(err.Error())
+	}
 
-	os.WriteFile(absolute_path, gpg_encr_output, os.ModePerm)
+	os.WriteFile(absolute_path, []byte(gpg_encr_output), os.ModePerm)
 
 	return nil
 }
@@ -181,10 +181,9 @@ func RemoveFromTreeFile(path string) error {
 		treedb_string += path + ":" + hash + "\n"
 	}
 
-	gpg_encr_command := exec.Command(`./sh/encr_string.sh`, config.GPGPublicKey, treedb_string, absolute_path)
-	gpg_encr_output, err := gpg_encr_command.Output()
+	gpg_encr_output, err := script.Echo(string(treedb_string)).Exec(fmt.Sprintf("gpg --encrypt --armor --always-trust --batch --yes --recipient %s --output -", config.GPGPublicKey)).String()
 
-	os.WriteFile(absolute_path, gpg_encr_output, os.ModePerm)
+	os.WriteFile(absolute_path, []byte(gpg_encr_output), os.ModePerm)
 
 	return nil
 }
@@ -213,17 +212,20 @@ func ParseTreeFile() (TreeDataBase, error) {
 		tree_file, _ = os.ReadFile(TreeDataBasePath)
 	}
 
-	gpg_command := exec.Command(`./sh/decr.sh`, TreeDataBasePath)
-	gpg_output, err := gpg_command.Output()
-	if err != nil {
-		panic(err.Error())
+	if _, err := os.Stat(TreeDataBasePath); os.IsNotExist(err) {
+		os.Create(TreeDataBasePath)
 	}
-	gpg_output = []byte(strings.TrimSpace(string(gpg_output)))
 
-	if string(gpg_output) == "" {
+	gpg_output, err := script.Exec(fmt.Sprintf("gpg -dq %s", TreeDataBasePath)).String()
+	if err != nil {
 		return treedb, nil
 	}
-	for _, data := range strings.Split(string(gpg_output), "\n") {
+	gpg_output = strings.TrimSpace(gpg_output)
+
+	if gpg_output == "" {
+		return treedb, nil
+	}
+	for _, data := range strings.Split(gpg_output, "\n") {
 		PathAndHash := strings.Split(data, ":")
 		treedb[PathAndHash[1]] = PathAndHash[0]
 	}
